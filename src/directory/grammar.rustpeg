@@ -27,6 +27,18 @@ Server descriptors, directories, and running-routers documents all obey the
     The BeginLine and EndLine of an Object must use the same keyword.
 */
 
+lowercase
+    = [a-z]
+
+uppercase
+    = [A-Z]
+
+digit
+    = [0-9]
+
+underscore
+    = "_"
+
 NL
     = "\n"
 SP
@@ -34,14 +46,66 @@ SP
 r
     = "r"
 m
-    = "r"
+    = "m"
+
+base64
+    = [a-zA-Z0-9+/]
+
+/*
+ * Date/time
+ */
+
+year
+    = (digit digit digit digit)
+
+month
+    = (digit digit?)
+
+day
+    = (digit digit?)
+
+hour
+    = (digit digit?)
+
+minute
+    = (digit digit?)
+
+second
+    = (digit digit?)
+
+/*
+ * IP Addresses
+ */
+
+ipv4octet
+    = (digit digit? digit?)
+
+ipv4
+    = (ipv4octet "." ipv4octect "." ipv4octect "." ipv4octet)
+
+ipv6
+    = 
+
+
 
 #[export]
 micro_status_entry -> MicroStatusEntry
-    = r_line_micro NL m_line_micro { XXX }
+    = r_line_micro NL m_line_micro NL { XXX }
 
 r_line_micro -> XXX
     = r SP nickname SP identity SP publication SP IP SP ORPort SP DirPort NL
+
+nickname -> String
+    = [a-zA-Z0-9_]+ { match_str.to_string() } 
+
+identity -> String
+    = base64+ { match_str.to_string() }
+
+publication -> Tm
+    = year-month-day hour:minute:second { XXX }
+
+IP -> Ipv4Addr
+    = 
 
 m_line_micro -> XXX
     = m SP digest NL
