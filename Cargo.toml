@@ -1,0 +1,7 @@
+[package]
+name = "libsomething-rename"
+version = "0.1.0"
+authors = ["Nik Kinkel <nskinkel@iastate.edu>"]
+
+[dependencies]
+peg = "0.3.0"
