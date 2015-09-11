@@ -1,5 +1,5 @@
 [package]
-name = "libsomething-rename"
+name = "onionctlrs"
 version = "0.1.0"
 authors = ["Nik Kinkel <nskinkel@iastate.edu>"]
 
