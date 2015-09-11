@@ -18,8 +18,19 @@ pub enum Flag {
     V2Dir,      /* the router implements the v2 directory protocol or higher */
 }
 
+pub enum ORAddressImpl {
+    ipv4 {address: Ipv4Addr},
+    ipv6 {address: Ipv6Addr},
+}
+
+pub struct ORAddress {
+    port: u32,
+    address: ORAddressImpl,
+}
+
+/* TODO: docs */
 pub struct RouterStatusEntry {
-    // XXX stuff from 'r' line
+    /* 'r' line */
     nickname:       String,   /* the OR's nickname */
     // TODO: custom type?
     identity:       XXX,      /* a hash of the OR's identity key, encoded in
@@ -31,7 +42,23 @@ pub struct RouterStatusEntry {
     publication:    Tm,       /* publication time of this OR's most recent
                                  descriptor, in UTC YYYY-MM-DD HH:MM:SS */
     // TODO: can this be IPv6?
-    IP:             Ipv4Addr, /* current IP address */
-    ORPort:         u32,      /* current OR port */
-    DirPort:        u32,      /* current directory port, or 0 for none */
+    ip:             Ipv4Addr, /* current IP address */
+    orport:         u32,      /* current OR port */
+    dirport:        u32,      /* current directory port, or 0 for none */
+
+    /* 'a' line */
+    oraddresses:    Vec<ORAddress>, /* TODO: docs */    
+
+    /* 's' line */
+    flags:          Vec<Flags>,     /* TODO: docs */
+
+    /* 'v' line */
+    version:        String,   /* Tor protocol version this relay is running */
+
+    /* 'w' line */
+    bandwidth:      u32,      /* TODO: docs */
+    measured:       u32,      /* TODO: docs */
+    unmeasured:     u32,      /* TODO: docs */
+
+
 }
