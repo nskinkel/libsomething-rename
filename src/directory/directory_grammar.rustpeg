@@ -1,0 +1,217 @@
+NL = "\n"
+SP = " "
+
+dot = "."
+hyphen = "-"
+colon = ":"
+equal = "="
+one = "1"
+
+lowercase
+    = [a-z]
+
+uppercase
+    = [A-Z]
+
+digit
+    = [0-9]
+
+letters_and_digits
+    = (uppercase/lowercase/digit)+
+
+base64
+    = (letters_and_digits/[+/])+
+
+/*
+ * Date/time
+ */
+
+date_time_seq
+    = date_seq SP time_seq
+
+date_seq
+    = year hyphen month hyphen day
+
+time_seq
+    = hour colon minute colon second
+
+year
+    = digit{4}
+
+month
+    = digit{2}
+
+day
+    = digit{2}
+
+hour
+    = digit{2}
+
+minute
+    = digit{2}
+
+second
+    = digit{2}
+
+/*
+ * IP Addresses
+ */
+
+ipv4_addr
+    = ((ipv4_octet "."){3} ipv4_octet)
+
+ipv4_octet
+    = digit{1,3}
+
+/*
+ * Recognized Flags
+ */
+
+known_flags
+    = (authority_flag   /
+       badexit_flag     /
+       exit_flag        /
+       fast_flag        /
+       guard_flag       /
+       hsdir_flag       /
+       named_flag       /
+       stable_flag      /
+       running_flag     /
+       valid_flag       /
+       v2dir_flag)
+
+authority_flag
+    = "Authority"
+
+badexit_flag
+    = "BadExit"
+
+exit_flag
+    = "Exit"
+
+fast_flag
+    = "Fast"
+
+guard_flag
+    = "Guard"
+
+hsdir_flag
+    = "HSDir"
+    
+named_flag
+    = "Named"
+
+stable_flag
+    = "Stable"
+
+running_flag
+    = "Running"
+
+unnamed_flag
+    = "Unnamed"
+
+valid_flag
+    = "Valid"
+
+v2dir_flag
+    = "V2Dir"
+
+
+/*
+ * Micro Status Entry
+ */
+
+#[export]
+micro_status_entry
+   = r_line_micro m_line_micro s_line_micro v_line_micro w_line_micro
+
+/*
+ * 'r' line components
+ */
+r_line_micro
+    = r SP nickname SP identity SP publication SP IP SP ORPort SP DirPort NL
+
+r
+    = "r"
+
+nickname
+    = letters_and_digits
+
+identity
+    = base64+
+
+publication
+    = date_time_seq
+
+IP
+    = ipv4_addr
+
+ORPort
+    = digit+
+
+DirPort
+    = digit+
+
+/*
+ * 'm' line components
+ */
+
+m_line_micro
+    = m SP digest NL
+
+m
+    = "m"
+
+digest
+    = base64+
+
+/*
+ * 's' line components
+ */
+
+s
+    = "s"
+
+s_line_micro
+    = s SP Flags NL
+
+Flags
+    = (known_flags/SP)*
+
+/*
+ * 'v' line components
+ */
+
+v
+    = "v"
+
+v_line_micro
+    = v SP version NL
+
+version
+    = (uppercase/lowercase/digit/SP/dot/hyphen)*
+
+/*
+ * 'w' line components
+ */
+
+w
+    = "w"
+
+/*
+w_line_micro
+    = w SP Bandwidth SP Unmeasured NL
+*/
+w_line_micro
+    = w SP Bandwidth NL
+
+Bandwidth
+    = bandwidth_kword equal digit+
+
+bandwidth_kword
+    = "Bandwidth"
+
+/*
+Unmeasured
+    = unmeasured_kword equal one
+*/

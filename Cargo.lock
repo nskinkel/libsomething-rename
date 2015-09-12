@@ -1,5 +1,5 @@
 [root]
-name = "libsomething-rename"
+name = "onionctlrs"
 version = "0.1.0"
 dependencies = [
  "peg 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
