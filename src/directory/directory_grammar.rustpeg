@@ -138,6 +138,7 @@ micro_status_entry -> MicroStatusEntry
             dirport:        r.5,
             digest:         m,
             flags:          s,
+            version:        match v {Some(v) => v, None => "".to_string()},
         }
     }
 

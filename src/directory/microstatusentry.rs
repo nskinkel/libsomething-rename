@@ -41,6 +41,9 @@ pub struct MicroStatusEntry {
                                 microdescriptor with trailing "="'s stripped */
     /* 's' line */
     pub flags:          Vec<Flag>,
+
+    /* 'v' line */
+    pub version:        String,
 }
 #[cfg(test)]
 mod tests {
