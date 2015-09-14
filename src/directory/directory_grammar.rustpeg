@@ -1,4 +1,4 @@
-use directory::microstatusentry::{Flag, MicroStatusEntry};
+use directory::microstatus::{Flag, Entry};
 
 use std::net::{Ipv4Addr};
 use time::{strptime, Tm};
@@ -127,7 +127,7 @@ v2dir_flag
  */
 
 #[export]
-micro_status_entry -> MicroStatusEntry
+micro_status_entry -> Entry
    = r:r_line_micro m:m_line_micro s:s_line_micro v:v_line_micro? w:w_line_micro? {
 
         let wv: (Option<u32>, Option<bool>) = match w {
@@ -135,7 +135,7 @@ micro_status_entry -> MicroStatusEntry
             None    => (None, None),
         };
 
-        MicroStatusEntry {
+        Entry {
             nickname:       r.0,
             identity:       r.1,
             publication:    r.2,

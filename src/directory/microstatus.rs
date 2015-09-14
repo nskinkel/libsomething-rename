@@ -17,7 +17,13 @@ pub enum Flag {
 }
 
 #[derive(Debug)]
-pub struct MicroStatusEntry {
+pub struct Preamble;
+
+#[derive(Debug)]
+pub struct Authority;
+
+#[derive(Debug)]
+pub struct Entry {
     /* 'r' line */
     pub nickname:       String,
     pub identity:       String,
@@ -40,6 +46,10 @@ pub struct MicroStatusEntry {
     pub bandwidth:      Option<u32>,
     pub unmeasured:     Option<bool>,
 }
+
+#[derive(Debug)]
+pub struct Footer;
+
 #[cfg(test)]
 mod tests {
     use directory::directory_grammar::{micro_status_entry};
