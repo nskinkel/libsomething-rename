@@ -1,3 +1,4 @@
+use std::collections::{HashMap};
 use std::net::{Ipv4Addr, Ipv6Addr};
 use time::{Tm};
 
@@ -17,7 +18,25 @@ pub enum Flag {
 }
 
 #[derive(Debug)]
-pub struct Preamble;
+pub struct VotingDelay {
+    vote_seconds:   u32,
+    dist_seconds:   u32,
+}
+
+#[derive(Debug)]
+pub struct Preamble {
+    version:            u32,
+    method:             u32,
+    valid_after:        Tm,
+    fresh_until:        Tm,
+    valid_until:        Tm,
+    voting_delay:       VotingDelay,
+    client_versions:    Option<String>,
+    server_versions:    Option<String>,
+    // XXX use vec of enums instead?
+    known_flags:        Vec<String>,
+    params:             Option<HashMap<String, u32>>,
+}
 
 #[derive(Debug)]
 pub struct Authority;
