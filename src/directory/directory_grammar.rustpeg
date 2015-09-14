@@ -129,6 +129,12 @@ v2dir_flag
 #[export]
 micro_status_entry -> MicroStatusEntry
    = r:r_line_micro m:m_line_micro s:s_line_micro v:v_line_micro? w:w_line_micro? {
+
+        let wv: (Option<u32>, Option<bool>) = match w {
+            Some(v) => (Some(v.0), v.1),
+            None    => (None, None),
+        };
+
         MicroStatusEntry {
             nickname:       r.0,
             identity:       r.1,
@@ -138,7 +144,9 @@ micro_status_entry -> MicroStatusEntry
             dirport:        r.5,
             digest:         m,
             flags:          s,
-            version:        match v {Some(v) => v, None => "".to_string()},
+            version:        v,
+            bandwidth:      wv.0,
+            unmeasured:     wv.1,
         }
     }
 
@@ -247,18 +255,20 @@ version -> &'input str
 w
     = "w"
 
-//w_line_micro
-//    = w SP Bandwidth SP Unmeasured NL
-w_line_micro
-    = w SP Bandwidth NL
+w_line_micro -> (u32, Option<bool>)
+    = w SP b:Bandwidth SP? u:Unmeasured? NL { (b, u) }
 
-Bandwidth
-    = bandwidth_kword equal digit+
+Bandwidth -> u32
+    = bandwidth_kword equal b:bval { b }
 
 bandwidth_kword
     = "Bandwidth"
 
-/*
-Unmeasured
-    = unmeasured_kword equal one
-*/
+bval -> u32
+    = digit+ { match_str.parse::<u32>().unwrap() }
+
+Unmeasured -> bool
+    = unmeasured_kword equal one { true }
+
+unmeasured_kword
+    = "Unmeasured"

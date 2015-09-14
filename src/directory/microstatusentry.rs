@@ -16,34 +16,29 @@ pub enum Flag {
     V2Dir,
 }
 
-/* TODO: docs */
 #[derive(Debug)]
 pub struct MicroStatusEntry {
     /* 'r' line */
-    pub nickname:       String,   /* the OR's nickname */
-    // TODO: custom type?
-    pub identity:       String,      /* a hash of the OR's identity key, encoded in
-                                 base64, with the trailing equals sign(s)
-                                 removed */
-    pub publication:    Tm,       /* publication time of this OR's most recent
-                                 descriptor, in UTC YYYY-MM-DD HH:MM:SS */
-    //pub publication:      String,
-
-    // TODO: can this be IPv6?
-    pub ip:             Ipv4Addr, /* current IP address */
-    //pub ip:             String,
-    pub orport:         u32,      /* current OR port */
-    pub dirport:        u32,      /* current directory port, or 0 for none */
+    pub nickname:       String,
+    pub identity:       String,
+    pub publication:    Tm,
+    // XXX: can this ever be IPv6?
+    pub ip:             Ipv4Addr,
+    pub orport:         u32,
+    pub dirport:        u32,
 
     /* 'm' line */
-    // TODO: custom type?
-    pub digest:         String,     /* base64 of the SHA256 hash of the router's
-                                microdescriptor with trailing "="'s stripped */
+    pub digest:         String,
+
     /* 's' line */
     pub flags:          Vec<Flag>,
 
     /* 'v' line */
-    pub version:        String,
+    pub version:        Option<String>,
+
+    /* 'w' line */
+    pub bandwidth:      Option<u32>,
+    pub unmeasured:     Option<bool>,
 }
 #[cfg(test)]
 mod tests {
