@@ -1,5 +1,8 @@
 use directory::microstatusentry::{MicroStatusEntry};
 
+use std::net::{Ipv4Addr};
+use time::{strptime, Tm};
+
 NL = "\n"
 SP = " "
 
@@ -140,7 +143,7 @@ micro_status_entry -> MicroStatusEntry
 /*
  * 'r' line components
  */
-r_line_micro -> (String, String, String, String, u32, u32)
+r_line_micro -> (String, String, Tm, Ipv4Addr, u32, u32)
     = r SP n:nickname SP i:identity SP p:publication SP ip:IP SP op:ORPort SP dp:DirPort NL {
         
         (n, i, p, ip, op, dp)
@@ -155,11 +158,14 @@ nickname -> String
 identity -> String
     = base64+ { match_str.to_string() }
 
-publication -> String
-    = date_time_seq { match_str.to_string() }
+publication -> Tm
+    = date_time_seq { strptime(match_str, "%Y-%m-%d %H:%M:%S").unwrap() }
 
-IP -> String
-    = ipv4_addr { match_str.to_string() }
+IP -> Ipv4Addr
+    = ipv4_addr { 
+        let addr: Ipv4Addr = match_str.parse().unwrap();
+        addr
+    }
 
 ORPort -> u32
     = digit+ { match_str.parse().unwrap() }
