@@ -1,4 +1,4 @@
-use directory::microstatusentry::{MicroStatusEntry};
+use directory::microstatusentry::{Flag, MicroStatusEntry};
 
 use std::net::{Ipv4Addr};
 use time::{strptime, Tm};
@@ -137,6 +137,7 @@ micro_status_entry -> MicroStatusEntry
             orport:         r.4,
             dirport:        r.5,
             digest:         m,
+            flags:          s,
         }
     }
 
@@ -193,11 +194,37 @@ digest -> String
 s
     = "s"
 
-s_line_micro
-    = s SP Flags NL
+s_line_micro -> Vec<Flag>
+    = s SP f:Flags NL {
+        let all = f.split(" ");
+        let cap = match all.size_hint().1 {
+            Some(v) => v,
+            None => 0,
+        };
+        let mut v: Vec<Flag> = Vec::with_capacity(cap);
 
-Flags
-    = (known_flags/SP)*
+        for i in all {
+            match i {
+                "Authority" => v.push(Flag::Authority),
+                "BadExit" => v.push(Flag::BadExit),
+                "Exit" => v.push(Flag::Exit),
+                "Fast" => v.push(Flag::Fast),
+                "Guard" => v.push(Flag::Guard),
+                "HSDir" => v.push(Flag::HSDir),
+                "Named" => v.push(Flag::Named),
+                "Stable" => v.push(Flag::Stable),
+                "Running" => v.push(Flag::Running),
+                "Valid" => v.push(Flag::Valid),
+                "V2Dir" => v.push(Flag::V2Dir),
+                _ => unreachable!("Unrecognized flag."),
+            }
+        }
+
+        v
+    }
+
+Flags -> &'input str
+    = (known_flags/SP)* { match_str }
 
 /*
  * 'v' line components

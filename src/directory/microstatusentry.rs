@@ -1,6 +1,21 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 use time::{Tm};
 
+#[derive(Debug)]
+pub enum Flag {
+    Authority,
+    BadExit,
+    Exit,
+    Fast,
+    Guard,
+    HSDir,
+    Named,
+    Stable,
+    Running,
+    Valid,
+    V2Dir,
+}
+
 /* TODO: docs */
 #[derive(Debug)]
 pub struct MicroStatusEntry {
@@ -24,6 +39,8 @@ pub struct MicroStatusEntry {
     // TODO: custom type?
     pub digest:         String,     /* base64 of the SHA256 hash of the router's
                                 microdescriptor with trailing "="'s stripped */
+    /* 's' line */
+    pub flags:          Vec<Flag>,
 }
 #[cfg(test)]
 mod tests {
