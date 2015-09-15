@@ -15,14 +15,18 @@ NL          = "\n"
 SP          = " "
 dot         = "."
 hyphen      = "-"
+minus       = "-"
+comma       = ","
 colon       = ":"
 equal       = "="
+underscore  = "_"
 one         = "1"
 lowercase   = [a-z]
 uppercase   = [A-Z]
+letters     = [a-zA-Z]
 digit       = [0-9]
-alphanum    = (uppercase/lowercase/digit)+
-base64      = (alphanum/[+/])+
+alphanum    = (letters/digit)
+base64      = (alphanum/[+/])
 /*
  * Date/time
  */
@@ -77,11 +81,22 @@ known_flags
  * Preamble
  */
 //micro_status_preamble
-//    = p_version_line p_vote_status_line p_method_line p_published_line p_valid_after_line p_fresh_until_line p_valid_until_line p_voting_delay_line p_client_versions_line p_server_versions_line p_known_flags_line p_params_line
+//    = p_version_line p_vote_status_line p_method_line p_valid_after_line p_fresh_until_line p_valid_until_line p_voting_delay_line p_client_versions_line p_server_versions_line p_known_flags_line p_params_line
 #[export]
 micro_status_preamble
     = p_version_line
+      p_vote_status_line
+      p_method_line
+      p_valid_after_line
+      p_fresh_until_line
+      p_valid_until_line
+      p_voting_delay_line
+      p_client_versions_line
+      p_server_versions_line
+      p_known_flags_line
+      p_params_line
 
+// consensus version line
 p_version_line
     = ns_version_kword SP ns_version SP microdesc NL
 
@@ -93,7 +108,117 @@ ns_version
 
 microdesc
     = "microdesc"
+// vote-status line
+p_vote_status_line
+    = vote_status_kword SP consensus NL
 
+vote_status_kword
+    = "vote-status"
+
+consensus
+    = "consensus"
+// method line
+p_method_line
+    = ns_method_kword SP ns_method NL
+
+ns_method_kword
+    = "consensus-method"
+
+ns_method
+    = digit+
+// valid-after line
+p_valid_after_line
+    = valid_after_kword SP valid_after_date_time NL
+
+valid_after_kword
+    = "valid-after"
+
+valid_after_date_time
+    = date_time_seq
+//    = date_time_seq { strptime(match_str, "%Y-%m-%d %H:%M:%S").unwrap() }
+// fresh-until line
+p_fresh_until_line
+    = fresh_until_kword SP fresh_until_date_time NL
+
+fresh_until_kword
+    = "fresh-until"
+
+fresh_until_date_time
+    = date_time_seq
+// valid-until line
+p_valid_until_line
+    = valid_until_kword SP valid_until_date_time NL
+
+valid_until_kword
+    = "valid-until"
+
+valid_until_date_time
+    = date_time_seq
+// voting-delay line
+p_voting_delay_line
+    = voting_delay_kword SP vote_seconds SP dist_seconds NL
+
+voting_delay_kword
+    = "voting-delay"
+
+vote_seconds
+    = digit+
+
+dist_seconds
+    = digit+
+// client-versions line
+p_client_versions_line
+    = client_versions_kword SP client_versions_str NL
+
+client_versions_kword
+    = "client-versions"
+
+// TODO: make this more strict based on version-spec?
+client_versions_str
+    = single_version_str ++ comma
+
+single_version_str
+    = (digit/"."/hyphen/lowercase)+
+// server-versions line
+p_server_versions_line
+    = server_versions_kword SP server_versions_str NL
+
+server_versions_kword
+    = "server-versions"
+
+// TODO: make this more strict based on version-spec?
+server_versions_str
+    = single_version_str ++ comma
+// known-flags line
+p_known_flags_line
+    = known_flags_kword SP known_flags_list NL
+
+known_flags_kword
+    = "known-flags"
+
+known_flags_list
+    = flag_str ++ SP
+
+flag_str
+    = (letters/digit)+
+// params line
+p_params_line
+    = params_kword SP params_list NL
+
+params_kword
+    = "params"
+
+params_list
+    = param_key_equal_value ++ SP
+
+param_key_equal_value
+    = param_key equal param_value
+
+param_key
+    = (alphanum/underscore)+
+
+param_value
+    = minus? digit+
 
 /*
  * Micro Status Entry
@@ -146,7 +271,7 @@ r
     = "r"
 
 nickname -> String
-    = alphanum { match_str.to_string() }
+    = alphanum+ { match_str.to_string() }
 
 identity -> String
     = base64+ { match_str.to_string() }
