@@ -80,8 +80,6 @@ known_flags
 /*
  * Preamble
  */
-//micro_status_preamble
-//    = p_version_line p_vote_status_line p_method_line p_valid_after_line p_fresh_until_line p_valid_until_line p_voting_delay_line p_client_versions_line p_server_versions_line p_known_flags_line p_params_line
 #[export]
 micro_status_preamble
     = p_version_line
