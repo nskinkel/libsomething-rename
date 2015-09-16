@@ -39,20 +39,20 @@ pub struct Preamble {
 // TODO: move this elsewhere
 #[derive(Debug, Eq, PartialEq)]
 pub struct DirectoryAuthority {
-    nickname:   String,
-    identity:   String,
-    address:    String,
+    pub nickname:   String,
+    pub identity:   String,
+    pub address:    String,
     // TODO: can these be Ipv6?
-    ip:         Ipv4Addr,
-    dirport:    Ipv4Addr,
-    orport:     Ipv4Addr,
-    contact:    String,
+    pub ip:         Ipv4Addr,
+    pub dirport:    u16,
+    pub orport:     u16,
+    pub contact:    String,
 }
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct DirSource {
-    authority:      DirectoryAuthority,
-    vote_digest:    String,
+    pub authority:      DirectoryAuthority,
+    pub vote_digest:    String,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -88,7 +88,7 @@ mod tests {
     use std::net::{Ipv4Addr};
     use time::{Tm};
 
-    use directory::directory_grammar::{micro_status_entry, micro_status_preamble};
+    use directory::directory_grammar::{micro_status_entry, micro_status_preamble, micro_status_authority};
     use super::*;
     
     #[test]
@@ -209,6 +209,28 @@ mod tests {
             params: Some(h),
         };
         let result = micro_status_preamble(s).ok().expect("failed!");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn minimal_micro_status_authority() {
+        let s = "dir-source longclaw 23D15D965BC35114467363C165C4F724B64B4F66 longclaw.riseup.net 199.254.238.52 80 443\ncontact Riseup Networks <collective at riseup dot net> - 1nNzekuHGGzBYRzyjfjFEfeisNvxkn4RT\nvote-digest A04CD308EE61BAC3B40232F12001E167DC5903BF\n";
+        let d = DirectoryAuthority {
+            nickname:   "longclaw".to_string(),
+            identity:   "23D15D965BC35114467363C165C4F724B64B4F66".to_string(),
+            address:    "longclaw.riseup.net".to_string(),
+            ip:         "199.254.238.52".parse().unwrap(),
+            dirport:    80,
+            orport:     443,
+            contact:    "Riseup Networks <collective at riseup dot net> - 1nNzekuHGGzBYRzyjfjFEfeisNvxkn4RT".to_string(),
+        };
+
+        let expected = DirSource {
+            authority: d,
+            vote_digest: "A04CD308EE61BAC3B40232F12001E167DC5903BF".to_string(),
+        };
+
+        let result = micro_status_authority(s).ok().expect("failed!");
         assert_eq!(result, expected);
     }
 }
