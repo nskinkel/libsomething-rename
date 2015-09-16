@@ -74,6 +74,8 @@ pub struct Entry {
     pub flags:          Vec<Flag>,
     pub version:        Option<String>,
     pub bandwidth:      Option<u32>,
+    // TODO: what type should this actually be? (almost certainly not
+    //       Option<bool>)
     pub unmeasured:     Option<bool>,
 }
 

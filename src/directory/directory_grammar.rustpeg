@@ -74,7 +74,20 @@ known_flags
        running_flag     /
        valid_flag       /
        v2dir_flag)
-
+/*
+ * Stuff from dir-spec
+ */
+Document = (Item / NL)+
+Item = KeywordLine Object*
+KeywordLine = (Keyword NL/Keyword WS ArgumentChar+ NL)
+Keyword = KeywordChar+
+KeywordChar = (alphanum/hyphen)
+// all printable ASCII except newline
+ArgumentChar = ([ -~][^NL])
+WS = (SP/TAB)+
+Object = BeginLine base64+ EndLine
+BeginLine = "-----BEGIN " Keyword "-----" NL
+EndLine = "-----END " Keyword "-----" NL
 
 /********************
  *                  *
@@ -339,19 +352,16 @@ micro_status_entry -> Entry
  * 'r' line components
  */
 r_line_micro -> (String, String, Tm, Ipv4Addr, u32, u32)
-    = r SP
-    n:nickname SP
-    i:identity SP
-    p:publication SP
-    ip:IP SP
-    op:ORPort SP
-    dp:DirPort NL {
+    = "r" SP
+      n:nickname SP
+      i:identity SP
+      p:publication SP
+      ip:IP SP
+      op:ORPort SP
+      dp:DirPort NL {
         
         (n, i, p, ip, op, dp)
     }
-
-r
-    = "r"
 
 nickname -> String
     = alphanum+ { match_str.to_string() }
@@ -373,29 +383,15 @@ ORPort -> u32
 
 DirPort -> u32
     = digit+ { match_str.parse().unwrap() }
-
-/*
- * 'm' line components
- */
-
+// 'm' line components
 m_line_micro -> String
-    = m SP d:digest NL { d }
-
-m
-    = "m"
+    = "m" SP d:digest NL { d }
 
 digest -> String
     = base64+ { match_str.to_string() }
-
-/*
- * 's' line components
- */
-
-s
-    = "s"
-
+// 's' line components
 s_line_micro -> Vec<Flag>
-    = s SP f:Flags NL {
+    = "s" SP f:Flags NL {
         let all = f.split(" ");
         let cap = match all.size_hint().1 {
             Some(v) => v,
@@ -423,43 +419,24 @@ s_line_micro -> Vec<Flag>
         v
     }
 
+// TODO: use delim notation and return Vec<&str>
 Flags -> &'input str
     = (known_flags/SP)* { match_str }
-
-/*
- * 'v' line components
- */
-
-v
-    = "v"
-
+// 'v' line components
 v_line_micro -> String
-    = v SP v:version NL { v.to_string() }
+    = "v" SP v:version NL { v.to_string() }
 
 version -> &'input str
     = (uppercase/lowercase/digit/SP/dot/hyphen)* { match_str }
-
-/*
- * 'w' line components
- */
-
-w
-    = "w"
-
+// 'w' line components
 w_line_micro -> (u32, Option<bool>)
-    = w SP b:Bandwidth SP? u:Unmeasured? NL { (b, u) }
+    = "w" SP b:Bandwidth SP? u:Unmeasured? NL { (b, u) }
 
 Bandwidth -> u32
-    = bandwidth_kword equal b:bval { b }
-
-bandwidth_kword
-    = "Bandwidth"
+    = "Bandwidth" equal b:bval { b }
 
 bval -> u32
     = digit+ { match_str.parse::<u32>().unwrap() }
 
 Unmeasured -> bool
-    = unmeasured_kword equal one { true }
-
-unmeasured_kword
-    = "Unmeasured"
+    = "Unmeasured" equal one { true }
