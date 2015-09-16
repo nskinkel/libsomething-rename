@@ -1,3 +1,7 @@
+// TODO: remove these
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 use std::collections::{HashMap};
 use std::net::{Ipv4Addr, Ipv6Addr};
 use time::{Tm};
@@ -25,17 +29,16 @@ pub struct VotingDelay {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Preamble {
-    version:            u32,
-    method:             u32,
-    valid_after:        Tm,
-    fresh_until:        Tm,
-    valid_until:        Tm,
-    voting_delay:       VotingDelay,
-    client_versions:    Option<String>,
-    server_versions:    Option<String>,
+    pub method:             u32,
+    pub valid_after:        Tm,
+    pub fresh_until:        Tm,
+    pub valid_until:        Tm,
+    pub voting_delay:       (u32, u32),
+    pub client_versions:    Option<String>,
+    pub server_versions:    Option<String>,
     // XXX use vec of enums instead?
-    known_flags:        Vec<String>,
-    params:             Option<HashMap<String, u32>>,
+    pub known_flags:        Vec<String>,
+    pub params:             Option<HashMap<String, i32>>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -63,6 +66,7 @@ pub struct Footer;
 
 #[cfg(test)]
 mod tests {
+    use std::collections::{HashMap};
     use std::net::{Ipv4Addr};
     use time::{Tm};
 
@@ -106,8 +110,87 @@ mod tests {
     }
 
     #[test]
-    fn minimal_micro_preamble() {
+    fn minimal_micro_status_preamble() {
         let s = "network-status-version 3 microdesc\nvote-status consensus\nconsensus-method 20\nvalid-after 2015-09-11 21:00:00\nfresh-until 2015-09-11 22:00:00\nvalid-until 2015-09-12 00:00:00\nvoting-delay 300 300\nclient-versions 0.2.4.23,0.2.4.24,0.2.4.25,0.2.4.26,0.2.4.27,0.2.5.8-rc,0.2.5.9-rc,0.2.5.10,0.2.5.11,0.2.5.12,0.2.6.5-rc,0.2.6.6,0.2.6.7,0.2.6.8,0.2.6.9,0.2.6.10,0.2.7.1-alpha,0.2.7.2-alpha\nserver-versions 0.2.4.23,0.2.4.24,0.2.4.25,0.2.4.26,0.2.4.27,0.2.5.8-rc,0.2.5.9-rc,0.2.5.10,0.2.5.11,0.2.5.12,0.2.6.5-rc,0.2.6.6,0.2.6.7,0.2.6.8,0.2.6.9,0.2.6.10,0.2.7.1-alpha,0.2.7.2-alpha\nknown-flags Authority BadExit Exit Fast Guard HSDir Running Stable V2Dir Valid\nparams CircuitPriorityHalflifeMsec=30000 NumDirectoryGuards=3 NumEntryGuards=1 NumNTorsPerTAP=100 Support022HiddenServices=0 UseNTorHandshake=1 UseOptimisticData=1 bwauthpid=1 cbttestfreq=1000 pb_disablepct=0 usecreatefast=0\n";
-        assert_eq!(micro_status_preamble(s), Ok(()));
+
+        let mut h: HashMap<String, i32> = HashMap::new();
+        h.insert("NumEntryGuards".to_string(), 1);
+        h.insert("bwauthpid".to_string(), 1);
+        h.insert("NumNTorsPerTAP".to_string(), 100);
+        h.insert("usecreatefast".to_string(), 0);
+        h.insert("cbttestfreq".to_string(), 1000);
+        h.insert("UseOptimisticData".to_string(), 1);
+        h.insert("Support022HiddenServices".to_string(), 0);
+        h.insert("UseNTorHandshake".to_string(), 1);
+        h.insert("CircuitPriorityHalflifeMsec".to_string(), 30000);
+        h.insert("pb_disablepct".to_string(), 0);
+        h.insert("NumDirectoryGuards".to_string(), 3);
+
+        let expected = Preamble {
+            method: 20,
+            valid_after: Tm {
+                                tm_sec: 0,
+                                tm_min: 0,
+                                tm_hour: 21,
+                                tm_mday: 11,
+                                tm_mon: 8,
+                                tm_year: 115,
+                                tm_wday: 0,
+                                tm_yday: 0,
+                                tm_isdst: 0,
+                                tm_utcoff: 0,
+                                tm_nsec: 0,
+                            },
+            fresh_until: Tm {
+                                tm_sec: 0,
+                                tm_min: 0,
+                                tm_hour: 22,
+                                tm_mday: 11,
+                                tm_mon: 8,
+                                tm_year: 115,
+                                tm_wday: 0,
+                                tm_yday: 0,
+                                tm_isdst: 0,
+                                tm_utcoff: 0,
+                                tm_nsec: 0,
+                            },
+            valid_until: Tm { 
+                                tm_sec: 0,
+                                tm_min: 0,
+                                tm_hour: 0,
+                                tm_mday: 12,
+                                tm_mon: 8,
+                                tm_year: 115,
+                                tm_wday: 0,
+                                tm_yday: 0,
+                                tm_isdst: 0,
+                                tm_utcoff: 0,
+                                tm_nsec: 0,
+                            },
+            voting_delay: (300, 300),
+            client_versions: Some("0.2.4.23,0.2.4.24,0.2.4.25,0.2.4.26,\
+                                  0.2.4.27,0.2.5.8-rc,0.2.5.9-rc,0.2.5.10,\
+                                  0.2.5.11,0.2.5.12,0.2.6.5-rc,0.2.6.6,\
+                                  0.2.6.7,0.2.6.8,0.2.6.9,0.2.6.10,\
+                                  0.2.7.1-alpha,0.2.7.2-alpha".to_string()),
+            server_versions: Some("0.2.4.23,0.2.4.24,0.2.4.25,0.2.4.26,\
+                                  0.2.4.27,0.2.5.8-rc,0.2.5.9-rc,0.2.5.10,\
+                                  0.2.5.11,0.2.5.12,0.2.6.5-rc,0.2.6.6,\
+                                  0.2.6.7,0.2.6.8,0.2.6.9,0.2.6.10,\
+                                  0.2.7.1-alpha,0.2.7.2-alpha".to_string()),
+            known_flags: vec!["Authority".to_string(),
+                              "BadExit".to_string(),
+                              "Exit".to_string(),
+                              "Fast".to_string(),
+                              "Guard".to_string(),
+                              "HSDir".to_string(),
+                              "Running".to_string(),
+                              "Stable".to_string(),
+                              "V2Dir".to_string(),
+                              "Valid".to_string()],
+            params: Some(h),
+        };
+        let result = micro_status_preamble(s).ok().expect("failed!");
+        assert_eq!(result, expected);
     }
 }

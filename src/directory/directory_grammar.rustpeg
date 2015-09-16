@@ -1,5 +1,6 @@
-use directory::microstatus::{Flag, Entry};
+use directory::microstatus::{Entry, Flag, Preamble};
 
+use std::collections::{HashMap};
 use std::net::{Ipv4Addr};
 use time::{strptime, Tm};
 
@@ -13,6 +14,7 @@ use time::{strptime, Tm};
  */
 NL          = "\n"
 SP          = " "
+TAB         = "\t"
 dot         = "."
 hyphen      = "-"
 minus       = "-"
@@ -27,6 +29,7 @@ letters     = [a-zA-Z]
 digit       = [0-9]
 alphanum    = (letters/digit)
 base64      = (alphanum/[+/])
+hex         = ([A-F][a-f][0-9])
 /*
  * Date/time
  */
@@ -72,6 +75,7 @@ known_flags
        valid_flag       /
        v2dir_flag)
 
+
 /********************
  *                  *
  * Micro consensus. *
@@ -81,18 +85,31 @@ known_flags
  * Preamble
  */
 #[export]
-micro_status_preamble
+micro_status_preamble -> Preamble
     = p_version_line
       p_vote_status_line
-      p_method_line
-      p_valid_after_line
-      p_fresh_until_line
-      p_valid_until_line
-      p_voting_delay_line
-      p_client_versions_line
-      p_server_versions_line
-      p_known_flags_line
-      p_params_line
+      a:p_method_line
+      b:p_valid_after_line
+      c:p_fresh_until_line
+      d:p_valid_until_line
+      e:p_voting_delay_line
+      f:p_client_versions_line?
+      g:p_server_versions_line?
+      h:p_known_flags_line
+      i:p_params_line? {
+        
+        Preamble {
+            method:             a,
+            valid_after:        b,
+            fresh_until:        c,
+            valid_until:        d,
+            voting_delay:       e,
+            client_versions:    f,
+            server_versions:    g,
+            known_flags:        h,
+            params:             i,
+        }
+      }
 
 // consensus version line
 p_version_line
@@ -102,7 +119,7 @@ ns_version_kword
     = "network-status-version"
 
 ns_version
-    = digit+
+    = "3"
 
 microdesc
     = "microdesc"
@@ -116,107 +133,119 @@ vote_status_kword
 consensus
     = "consensus"
 // method line
-p_method_line
-    = ns_method_kword SP ns_method NL
+p_method_line -> u32
+    = ns_method_kword SP m:ns_method NL { m }
 
 ns_method_kword
     = "consensus-method"
 
-ns_method
-    = digit+
+ns_method -> u32
+    = digit+ { match_str.parse().unwrap() }
 // valid-after line
-p_valid_after_line
-    = valid_after_kword SP valid_after_date_time NL
+p_valid_after_line -> Tm
+    = valid_after_kword SP v:valid_after_date_time NL { v }
 
 valid_after_kword
     = "valid-after"
 
-valid_after_date_time
-    = date_time_seq
-//    = date_time_seq { strptime(match_str, "%Y-%m-%d %H:%M:%S").unwrap() }
+valid_after_date_time -> Tm
+    = date_time_seq { strptime(match_str, "%Y-%m-%d %H:%M:%S").unwrap() }
 // fresh-until line
-p_fresh_until_line
-    = fresh_until_kword SP fresh_until_date_time NL
+p_fresh_until_line -> Tm
+    = fresh_until_kword SP f:fresh_until_date_time NL { f }
 
 fresh_until_kword
     = "fresh-until"
 
-fresh_until_date_time
-    = date_time_seq
+fresh_until_date_time -> Tm
+    = date_time_seq { strptime(match_str, "%Y-%m-%d %H:%M:%S").unwrap() }
 // valid-until line
-p_valid_until_line
-    = valid_until_kword SP valid_until_date_time NL
+p_valid_until_line -> Tm
+    = valid_until_kword SP v:valid_until_date_time NL { v }
 
 valid_until_kword
     = "valid-until"
 
-valid_until_date_time
-    = date_time_seq
+valid_until_date_time -> Tm
+    = date_time_seq { strptime(match_str, "%Y-%m-%d %H:%M:%S").unwrap() }
 // voting-delay line
-p_voting_delay_line
-    = voting_delay_kword SP vote_seconds SP dist_seconds NL
+p_voting_delay_line -> (u32, u32)
+    = voting_delay_kword SP v:vote_seconds SP d:dist_seconds NL {
+
+        (v, d)
+    }
 
 voting_delay_kword
     = "voting-delay"
 
-vote_seconds
-    = digit+
+vote_seconds -> u32
+    = digit+ { match_str.parse().unwrap() }
 
-dist_seconds
-    = digit+
+dist_seconds -> u32
+    = digit+ { match_str.parse().unwrap() }
 // client-versions line
-p_client_versions_line
-    = client_versions_kword SP client_versions_str NL
+p_client_versions_line -> String
+    = client_versions_kword SP c:client_versions_str NL { c }
 
 client_versions_kword
     = "client-versions"
 
 // TODO: make this more strict based on version-spec?
-client_versions_str
-    = single_version_str ++ comma
+client_versions_str -> String
+    = single_version_str ++ comma { match_str.to_string() }
 
 single_version_str
     = (digit/"."/hyphen/lowercase)+
 // server-versions line
-p_server_versions_line
-    = server_versions_kword SP server_versions_str NL
+p_server_versions_line -> String
+    = server_versions_kword SP s:server_versions_str NL { s }
 
 server_versions_kword
     = "server-versions"
 
 // TODO: make this more strict based on version-spec?
-server_versions_str
-    = single_version_str ++ comma
+server_versions_str -> String
+    = single_version_str ++ comma { match_str.to_string() }
 // known-flags line
-p_known_flags_line
-    = known_flags_kword SP known_flags_list NL
+p_known_flags_line -> Vec<String>
+    = known_flags_kword SP k:known_flags_list NL { k }
 
 known_flags_kword
     = "known-flags"
 
-known_flags_list
-    = flag_str ++ SP
+known_flags_list -> Vec<String>
+    = f:flag_str ++ SP { f }
 
-flag_str
-    = (letters/digit)+
+flag_str -> String
+    = (letters/digit)+ { match_str.to_string() }
 // params line
-p_params_line
-    = params_kword SP params_list NL
+p_params_line -> HashMap<String, i32>
+    = params_kword SP p:params_list NL {
+        
+        // TODO: intelligently use with_capacity()
+        let mut h: HashMap<String, i32> = HashMap::new();
+
+        for i in p.into_iter() {
+            h.insert(i.0, i.1);
+        }
+        
+        h
+    }
 
 params_kword
     = "params"
 
-params_list
+params_list -> Vec<(String, i32)>
     = param_key_equal_value ++ SP
 
-param_key_equal_value
-    = param_key equal param_value
+param_key_equal_value -> (String, i32)
+    = k:param_key equal v:param_value { (k, v) }
 
-param_key
-    = (alphanum/underscore)+
+param_key -> String
+    = (alphanum/underscore)+ { match_str.to_string() }
 
-param_value
-    = minus? digit+
+param_value -> i32
+    = minus? digit+ { match_str.parse().unwrap() }
 
 /*
  * Micro Status Entry
@@ -230,6 +259,7 @@ micro_status_entry -> Entry
      v:v_line_micro?
      w:w_line_micro? {
 
+        // TODO: clean this up
         let wv: (Option<u32>, Option<bool>) = match w {
             Some(v) => (Some(v.0), v.1),
             None    => (None, None),
