@@ -22,17 +22,12 @@ pub enum Flag {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct VotingDelay {
-    vote_seconds:   u32,
-    dist_seconds:   u32,
-}
-
-#[derive(Debug, Eq, PartialEq)]
 pub struct Preamble {
     pub method:             u32,
     pub valid_after:        Tm,
     pub fresh_until:        Tm,
     pub valid_until:        Tm,
+    // TODO: make this an enum or something
     pub voting_delay:       (u32, u32),
     pub client_versions:    Option<String>,
     pub server_versions:    Option<String>,
@@ -41,8 +36,29 @@ pub struct Preamble {
     pub params:             Option<HashMap<String, i32>>,
 }
 
+// TODO: move this elsewhere
 #[derive(Debug, Eq, PartialEq)]
-pub struct Authority;
+pub struct DirectoryAuthority {
+    nickname:   String,
+    identity:   String,
+    address:    String,
+    // TODO: can these be Ipv6?
+    ip:         Ipv4Addr,
+    dirport:    Ipv4Addr,
+    orport:     Ipv4Addr,
+    contact:    String,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct DirSource {
+    authority:      DirectoryAuthority,
+    vote_digest:    String,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct Authority {
+    authorities: Vec<DirSource>,
+}
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Entry {

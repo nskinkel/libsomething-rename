@@ -246,7 +246,62 @@ param_key -> String
 
 param_value -> i32
     = minus? digit+ { match_str.parse().unwrap() }
+/*
+ * Authority Section
+ */
+#[export]
+micro_status_authority
+    = a_dir_source_line
+      a_contact_line
+      a_vote_digest_line
 
+// dir-source line
+a_dir_source_line
+    = a_dir_source_kword SP a_nickname SP a_identity SP a_address SP a_ip SP a_dirport SP a_orport SP NL
+
+a_dir_source_kword
+    = "dir-source"
+
+a_nickname -> String
+    = alphanum+ { match_str.to_string() }
+
+a_identity -> String
+    = base64+ { match_str.to_string() }
+
+// TODO: make this stricter
+a_address -> String
+    = .* { match_str.to_string() }
+
+a_ip -> Ipv4Addr
+    = ipv4_addr { 
+        let addr: Ipv4Addr = match_str.parse().unwrap();
+        addr
+    }
+
+a_orport -> u32
+    = digit+ { match_str.parse().unwrap() }
+
+a_dirport -> u32
+    = digit+ { match_str.parse().unwrap() }
+// contact line
+a_contact_line
+    = contact_kword SP a_contact NL
+
+contact_kword
+    = "contact"
+
+// TODO: any printable ascii goes here?
+a_contact -> String
+    = .* { match_str.to_string() }
+// vote-digest line
+a_vote_digest_line
+    = vote_digest_kword SP vote_digest NL
+
+vote_digest_kword
+    = "vote-digest"
+
+vote_digest -> String
+    = hex+ { match_str.to_string() }
 /*
  * Micro Status Entry
  */
