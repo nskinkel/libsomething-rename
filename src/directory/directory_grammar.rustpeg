@@ -126,114 +126,87 @@ micro_status_preamble -> Preamble
 
 // consensus version line
 p_version_line
-    = ns_version_kword SP ns_version SP microdesc NL
+    = "network-status-version" SP "3" SP "microdesc" NL
 
-ns_version_kword
-    = "network-status-version"
-
-ns_version
-    = "3"
-
-microdesc
-    = "microdesc"
 // vote-status line
 p_vote_status_line
-    = vote_status_kword SP consensus NL
+    = "vote-status" SP "consensus" NL
 
-vote_status_kword
-    = "vote-status"
-
-consensus
-    = "consensus"
 // method line
 p_method_line -> u32
-    = ns_method_kword SP m:ns_method NL { m }
-
-ns_method_kword
-    = "consensus-method"
+    = "consensus-method" SP m:ns_method NL { m }
 
 ns_method -> u32
     = digit+ { match_str.parse().unwrap() }
+
 // valid-after line
 p_valid_after_line -> Tm
-    = valid_after_kword SP v:valid_after_date_time NL { v }
-
-valid_after_kword
-    = "valid-after"
+    = "valid-after" SP v:valid_after_date_time NL { v }
 
 valid_after_date_time -> Tm
     = date_time_seq { strptime(match_str, "%Y-%m-%d %H:%M:%S").unwrap() }
+
 // fresh-until line
 p_fresh_until_line -> Tm
-    = fresh_until_kword SP f:fresh_until_date_time NL { f }
-
-fresh_until_kword
-    = "fresh-until"
+    = "fresh-until" SP f:fresh_until_date_time NL { f }
 
 fresh_until_date_time -> Tm
     = date_time_seq { strptime(match_str, "%Y-%m-%d %H:%M:%S").unwrap() }
+
 // valid-until line
 p_valid_until_line -> Tm
-    = valid_until_kword SP v:valid_until_date_time NL { v }
-
-valid_until_kword
-    = "valid-until"
+    = "valid-until" SP v:valid_until_date_time NL { v }
 
 valid_until_date_time -> Tm
     = date_time_seq { strptime(match_str, "%Y-%m-%d %H:%M:%S").unwrap() }
+
 // voting-delay line
 p_voting_delay_line -> (u32, u32)
-    = voting_delay_kword SP v:vote_seconds SP d:dist_seconds NL {
+    = "voting-delay" SP v:vote_seconds SP d:dist_seconds NL {
 
         (v, d)
     }
-
-voting_delay_kword
-    = "voting-delay"
 
 vote_seconds -> u32
     = digit+ { match_str.parse().unwrap() }
 
 dist_seconds -> u32
     = digit+ { match_str.parse().unwrap() }
+
 // client-versions line
 p_client_versions_line -> String
-    = client_versions_kword SP c:client_versions_str NL { c }
-
-client_versions_kword
-    = "client-versions"
+    = "client-versions" SP c:client_versions_str NL { c }
 
 // TODO: make this more strict based on version-spec?
+// TODO: return Vec<String> instead?
 client_versions_str -> String
     = single_version_str ++ comma { match_str.to_string() }
 
 single_version_str
     = (digit/"."/hyphen/lowercase)+
+
 // server-versions line
 p_server_versions_line -> String
-    = server_versions_kword SP s:server_versions_str NL { s }
-
-server_versions_kword
-    = "server-versions"
+    = "server-versions" SP s:server_versions_str NL { s }
 
 // TODO: make this more strict based on version-spec?
+// TODO: return Vec<String>?
 server_versions_str -> String
     = single_version_str ++ comma { match_str.to_string() }
+
 // known-flags line
 p_known_flags_line -> Vec<String>
-    = known_flags_kword SP k:known_flags_list NL { k }
-
-known_flags_kword
-    = "known-flags"
+    = "known-flags" SP k:known_flags_list NL { k }
 
 known_flags_list -> Vec<String>
     = f:flag_str ++ SP { f }
 
 flag_str -> String
     = (letters/digit)+ { match_str.to_string() }
+
 // params line
 p_params_line -> HashMap<String, i32>
-    = params_kword SP p:params_list NL {
+    = "params" SP p:params_list NL {
         
         // TODO: intelligently use with_capacity()
         let mut h: HashMap<String, i32> = HashMap::new();
@@ -244,9 +217,6 @@ p_params_line -> HashMap<String, i32>
         
         h
     }
-
-params_kword
-    = "params"
 
 params_list -> Vec<(String, i32)>
     = param_key_equal_value ++ SP
